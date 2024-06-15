@@ -54,9 +54,11 @@ async def process_image(image_data):
         values = extract_values_from_text(text)
         result = compare_values(values)
 
-        filtered_values = {'Hemoglobin': values.get('Hemoglobin')} if 'Hemoglobin' in values else {}
+        final_result = {'result': result}
+        if 'Hemoglobin' in values:
+            final_result['Hemoglobin'] = values['Hemoglobin']
 
-        return {'result': result, 'values': filtered_values}
+        return final_result
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error processing image: {str(e)}")
 
