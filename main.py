@@ -1,10 +1,11 @@
 from fastapi import FastAPI, File, UploadFile
 import cv2
 import numpy as np
-import pytesseract
 import re
+import easyocr
 
 app = FastAPI()
+reader = easyocr.Reader(['en'])
 
 def extract_values_from_text(text):
     values = {}
@@ -56,15 +57,13 @@ async def process_image(image_data):
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         image = cv2.resize(image, None, fx=1.5, fy=1.5, interpolation=cv2.INTER_CUBIC)
 
-        custom_config = r'--oem 3 --psm 6'
-        text = pytesseract.image_to_string(image, config=custom_config)
+        result = reader.readtext(image, detail=0, paragraph=True)
+        text = "\n".join(result)
 
         values = extract_values_from_text(text)
 
         result, hemoglobin_value = build_model_and_predict(values)
         return result, hemoglobin_value
-    except pytesseract.TesseractError as e:
-        return "Tesseract Error: " + str(e), None
     except Exception as e:
         return "An error occurred: " + str(e), None
 
